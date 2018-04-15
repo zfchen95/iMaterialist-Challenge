@@ -4,14 +4,14 @@ import urllib
 import os
 
 def main():
-	if len(sys.argv) != 3:
+	if len(sys.argv) != 4:
 		print("Usage: python geturl.py <filepath> <dest> <number_images>")
 		return
 	filepath = sys.argv[1]
 	directory = sys.argv[2]
 	num_img = sys.argv[3]
 	json_file = open(filepath)
-	json_str = json_file.read().decode("UTF-8")
+	json_str = json_file.read()
 	data = json.loads(json_str)
 
 	images = data['images']
