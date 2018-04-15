@@ -34,14 +34,15 @@ def main():
 	with open('annotations.txt', 'w+') as file:
 		for key,val in class_dict.iteritems():
 			print("Downloading class " + str(key))
-			for i in range(0, min(num_img, len(val))):
+			for i in range(0, min(int(num_img), len(val))):
 				download_img = urllib.URLopener()
 				try:
 					path = directory + str(val[i][0]) + ".jpg"
 					download_img.retrieve(val[i][1], path)
 					#store annotation of the image
-					file.write(str(val[i][1])+ "," + str(key))
-				except IOError:
+					file.write(str(val[i][0])+ "," + str(key)+'\n')
+					print("write image "+ str(val[i][0])+ " done")
+				except:
 					print("Can not read image "+ str(val[i][0])+ " from url...")
 					i-=1
 					
