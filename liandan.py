@@ -48,7 +48,7 @@ def loadData(image_path, anno_path):
     print("annotation size", size)
 
     y_data = np.zeros((size,1), dtype=np.int)
-    x_data = np.zeros((size,224,224,3), dtype=np.float32)
+    x_data = np.zeros((1500,224,224,3), dtype=np.float32)
 
     count = 0
     for key,value in annotations.items():
