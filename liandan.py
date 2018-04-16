@@ -9,7 +9,6 @@ from keras.layers import Dense, GlobalAveragePooling2D
 from keras.applications.densenet import DenseNet121
 import numpy as np
 from keras.models import Model
-from sklearn.model_selection import train_test_split
 from keras import backend as K
 
 
