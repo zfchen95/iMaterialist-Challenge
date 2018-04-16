@@ -4,7 +4,7 @@
 import cv2
 import csv
 import sys
-import keras 
+import keras
 from keras.layers import Dense, GlobalAveragePooling2D
 from keras.applications.densenet import DenseNet121
 import numpy as np
@@ -22,7 +22,7 @@ def readImage(pathname):
     if oriim is None:
         return None
     im = cv2.resize(oriim, (224, 224)).astype(np.float32)
-    # Subtract mean pixel and multiple by scaling constant 
+    # Subtract mean pixel and multiple by scaling constant
     # Reference: https://github.com/shicai/DenseNet-Caffe
     im[:,:,0] = (im[:,:,0] - 103.94) * 0.017
     im[:,:,1] = (im[:,:,1] - 116.78) * 0.017
@@ -35,7 +35,7 @@ def readImage(pathname):
 # input: option 'train' or 'validate
 # returns: a list of data [x_data, y_data]
 def loadData(image_path, anno_path):
-    
+
     # load annotation into memory first
     annotations = {}
     with open(anno_path, 'r+') as csvfile:
@@ -67,12 +67,12 @@ def loadData(image_path, anno_path):
 
     count -= 1
     print("valid image count:",count)
-    
+
     x_data = x_data[:count]
     y_data = y_data[:count]
     print('x_data shape:', x_data.shape)
     print('y_data shape:', y_data.shape)
-    
+
     return [x_data,y_data]
 
 
@@ -114,6 +114,11 @@ def main():
 
     y_train_binary = keras.utils.np_utils.to_categorical(y_train)
     y_val_binary = keras.utils.np_utils.to_categorical(y_val)
+
+    print y_train.shape
+    print y_val.shape
+    print y_train_binary.shape
+    print y_val_binary.shape
 
     # train the model on the new data for a few epochs
     batch_size = 32
