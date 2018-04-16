@@ -3,6 +3,7 @@
 
 import cv2
 import csv
+import sys
 import keras 
 from keras.layers import Dense, GlobalAveragePooling2D
 from keras.applications.densenet import DenseNet121
@@ -34,12 +35,8 @@ def readImage(pathname):
 # load data
 # input: option 'train' or 'validate
 # returns: a list of data [x_data, y_data]
-def loadData(directory):
-    root_dir = 'data/'
-    image_path = root_dir + directory +'/'
-    anno_path = root_dir+directory+'_annotations.txt'
+def loadData(image_path, anno_path):
     
-
     # load annotation into memory first
     annotations = {}
     with open(anno_path, 'r+') as csvfile:
@@ -80,46 +77,53 @@ def loadData(directory):
     return [x_data,y_data]
 
 
+def main():
+    training_path = sys.argv[1]
+    training_annotation = sys.argv[2]
+    validate_path = sys.argv[3]
+    validate_annotation = sys.argv[4]
 
-# load training set and validation set
-[x_train,y_train] = loadData('train')
-[x_val, y_val] = loadData('validate')
+    # load training set and validation set
+    [x_train,y_train] = loadData(training_path, training_annotation)
+    [x_val, y_val] = loadData(validate_path, validate_annotation)
 
 
-# create the base pre-trained model
-dense_model = keras.applications.densenet.DenseNet121(weights='imagenet', include_top=False)
-#dense_model.summary()
+    # create the base pre-trained model
+    dense_model = keras.applications.densenet.DenseNet121(weights='imagenet', include_top=False)
+    #dense_model.summary()
 
-# add a global spatial average pooling layer
-x = dense_model.output
-x = GlobalAveragePooling2D()(x)
+    # add a global spatial average pooling layer
+    x = dense_model.output
+    x = GlobalAveragePooling2D()(x)
 
-# let's add a fully-connected layer
-x = Dense(1024, activation='relu')(x)
+    # let's add a fully-connected layer
+    x = Dense(1024, activation='relu')(x)
 
-# and a logistic layer -- let's say we have 128 classes
-predictions = Dense(128, activation='softmax')(x)
+    # and a logistic layer -- let's say we have 128 classes
+    predictions = Dense(128, activation='softmax')(x)
 
-# this is the model we will train
-my_model = Model(inputs=dense_model.input, outputs=predictions)
+    # this is the model we will train
+    my_model = Model(inputs=dense_model.input, outputs=predictions)
 
-# first: train only the top layers (which were randomly initialized)
-# i.e. freeze all convolutional InceptionV3 layers
-for layer in dense_model.layers:
-    layer.trainable = False
-#my_model.summary() # trainable params decrease
+    # first: train only the top layers (which were randomly initialized)
+    # i.e. freeze all convolutional InceptionV3 layers
+    for layer in dense_model.layers:
+        layer.trainable = False
+    #my_model.summary() # trainable params decrease
 
-my_model.compile(optimizer='rmsprop', loss='categorical_crossentropy')
+    my_model.compile(optimizer='rmsprop', loss='categorical_crossentropy')
 
-y_train_binary = keras.utils.np_utils.to_categorical(y_train)
-y_val_binary = keras.utils.np_utils.to_categorical(y_val)
+    y_train_binary = keras.utils.np_utils.to_categorical(y_train)
+    y_val_binary = keras.utils.np_utils.to_categorical(y_val)
 
-# train the model on the new data for a few epochs
-batch_size = 32
-nb_epoch = 200
-result=my_model.fit(x_train, y_train_binary,
-                  batch_size=batch_size,
-                  nb_epoch=nb_epoch,
-                  validation_data=(x_val, y_val_binary),
-                  shuffle=True)
+    # train the model on the new data for a few epochs
+    batch_size = 32
+    nb_epoch = 200
+    result=my_model.fit(x_train, y_train_binary,
+                      batch_size=batch_size,
+                      nb_epoch=nb_epoch,
+                      validation_data=(x_val, y_val_binary),
+                      shuffle=True)
 
+if __name__ == '__main__':
+    main()
