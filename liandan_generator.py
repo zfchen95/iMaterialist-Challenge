@@ -34,51 +34,27 @@ def readImage(pathname):
 
 # In[77]:
 
-
-# load data
-# returns: a list of data [x_data, y_data]
-def random_generator(self, image_path, anno_path, batch_size):
-
-    # load annotation into memory first
-    annotations = {}
-    with open(anno_path, 'r+') as csvfile:
-        csvreader = csv.reader(csvfile, delimiter = ',')
-        for row in csvreader:
-            annotations[row[0]] = int(row[1])-1 #-1 here to make correct binary catogory
-
-    size = len(annotations)
-    print("annotation size", size)
+# filename class_id.jpg
+def random_generator(rootpath, batch_size):
+    if rootpath[-1] != '/':
+        rootpath = rootpath + '/'
+    imagesname = os.listdir(rootpath)
+    imagesname.remove('.DS_Store')
     
     while True: # generator only called once, not every epoch. So need an infinite loop
         y_data = np.zeros((batch_size,1), dtype=np.int)
         x_data = np.zeros((batch_size,224,224,3), dtype=np.float32)
 
-        count = 0
-        rand_keys = random.sample(list(annotations), batch_size * 10) # here, *10 is to avoid invalid img_url
-        for key in rand_keys:
-            # stop get a new data, since we have get a full batch
-            if count >= batch_size:
-                break
-            im = readImage(image_path+key+'.jpg')
-            if im is None:
-                continue
-            im = np.expand_dims(im, axis=0)
-            x_data[count] = im
-
-            label = annotations[key]
-            label_np = np.array([label])
-            label_np = np.expand_dims(label_np, axis=0)
-            y_data[count] = label_np
-
-            count += 1
-
-        if count < batch_size:
-            print("not enough valid img_url")
-
+        samples = random.sample(imagesname, batch_size)
+        print(samples)
+        for idx, sample in enumerate(samples):
+            y_data[idx] = int(sample.split("_")[0])
+            x_data[idx] = readImage(rootpath+sample)
+        
         y_data_binary = keras.utils.np_utils.to_categorical(y_data, num_classes = 128)
 
         yield (x_data, y_data_binary)
-#     return [x_data, y_data_binary]
+
 
 def main():
     training_path = sys.argv[1]
@@ -113,14 +89,14 @@ def main():
 
     # train the model on the new data for a few epochs
     batch_size = 32
-    nb_epoch = 2000
+    nb_epoch = 1800
     steps = 100 #steps*nb_epoch = 200000 > 19000, can cover the whole dataset
-    result=my_model.fit_generator(self.random_generator(training_path, training_annotation, batch_size),                                                      
-                            steps_per_epoch=steps,
-                            epoch = nb_epoch, 
-                            validation_data=self.random_generator(validate_path, validate_annotation, batch_size),
-                            validation_steps = 2
-                            )
+    result=my_model.fit_generator(random_generator(rootpath, batch_size),                                                      
+                        steps_per_epoch=steps,
+                        epochs = nb_epoch, 
+                        validation_data=random_generator(rootpath, batch_size),
+                        validation_steps = 2,
+                        )
 
 if __name__ == '__main__':
     main()
